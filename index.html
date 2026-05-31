@@ -133,6 +133,7 @@
     .cat-admin    {color:var(--text3);background:rgba(113,113,122,0.1);border:1px solid rgba(113,113,122,0.2);}
     .cat-report   {color:var(--purple);background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);}
     .cat-incident {color:var(--red);background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);}
+    .sb-scheduled{color:var(--blue);font-weight:600;}
     .status-badge{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;}
     .sb-complete{color:var(--green);}
     .sb-pending {color:var(--amber);}
@@ -186,6 +187,21 @@
     .empty{text-align:center;padding:4rem 2rem;}
     .empty-icon{font-size:2rem;opacity:0.15;margin-bottom:1rem;}
     .empty-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--text3);}
+
+    /* UPCOMING */
+    .upcoming-section{margin-bottom:1.5rem;}
+    .upcoming-label{font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:0.6rem;}
+    .upcoming-empty{font-size:12px;color:var(--text3);font-style:italic;padding:0.5rem 0;}
+    .upcoming-item{display:flex;align-items:center;gap:1rem;padding:0.75rem 1.25rem;background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--gold);margin-bottom:1px;transition:background 0.15s;}
+    .upcoming-item:hover{background:var(--bg2);}
+    .upcoming-item.urgent{border-left-color:var(--amber);}
+    .upcoming-item.today{border-left-color:var(--green);}
+    .upcoming-date{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:var(--gold);min-width:50px;text-align:center;line-height:1;}
+    .upcoming-date-sub{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-top:1px;}
+    .upcoming-title{font-size:13px;font-weight:500;color:var(--text);flex:1;}
+    .upcoming-days{font-size:11px;color:var(--text3);white-space:nowrap;}
+    .upcoming-days.today-lbl{color:var(--green);font-weight:600;}
+    .upcoming-days.soon-lbl{color:var(--amber);font-weight:600;}
 
     /* BOTTOM BAR */
     .bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(9,9,11,0.97);backdrop-filter:blur(12px);border-top:1px solid rgba(201,169,110,0.2);padding:0.6rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
@@ -273,6 +289,12 @@
         </div>
       </div>
 
+      <!-- UPCOMING -->
+      <div class="upcoming-section">
+        <div class="upcoming-label">Upcoming</div>
+        <div id="upcoming-list"></div>
+      </div>
+
       <!-- RECENT FEED -->
       <div class="feed-header">
         <div class="feed-title">Recent Activity</div>
@@ -342,6 +364,11 @@
       <div class="form-group">
         <label class="form-label">Notes</label>
         <textarea class="form-ctrl" id="arr-notes" placeholder="Additional details, number of guests, special instructions..."></textarea>
+      </div>
+      <div class="form-group" id="arr-scheduled-wrap" style="display:none;">
+        <div style="background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.2);border-left:3px solid var(--gold);padding:0.6rem 1rem;font-size:12px;color:var(--text2);">
+          📅 Future date — will appear as <strong style="color:var(--gold);">Upcoming</strong> on the dashboard until the day arrives.
+        </div>
       </div>
     </div>
     <div class="qm-footer">
@@ -541,6 +568,11 @@ function initApp() {
   document.getElementById('dash-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   document.getElementById('e-date').value = now.toISOString().split('T')[0];
   document.getElementById('arr-date').value = now.toISOString().split('T')[0];
+  document.getElementById('arr-date').addEventListener('change', function(){
+    var today = new Date().toISOString().split('T')[0];
+    var wrap = document.getElementById('arr-scheduled-wrap');
+    if (wrap) wrap.style.display = this.value > today ? 'block' : 'none';
+  });
   document.getElementById('arr-time').value = now.toTimeString().slice(0,5);
   document.getElementById('ven-date').value = now.toISOString().split('T')[0];
   setStatusPill(propertyStatus);
@@ -623,6 +655,9 @@ function renderDashboard() {
     document.getElementById('kpi-last-sub').textContent=last.title.slice(0,35);
   }
 
+  // Upcoming
+  renderUpcoming();
+
   // Weather
   fetchWeather();
 
@@ -634,6 +669,69 @@ function renderDashboard() {
 }
 
 // ─── WEATHER ─────────────────────────────────────────────────────────────
+function renderUpcoming() {
+  var wrap = document.getElementById('upcoming-list');
+  if (!wrap) return;
+
+  var today = new Date().toISOString().split('T')[0];
+  var upcoming = entries.filter(function(e){
+    return e.status === 'scheduled' && e.date >= today;
+  }).sort(function(a,b){ return a.date > b.date ? 1 : -1; });
+
+  if (upcoming.length === 0) {
+    wrap.innerHTML = '<div class="upcoming-empty">No scheduled arrivals or departures</div>';
+    return;
+  }
+
+  wrap.innerHTML = '';
+  upcoming.forEach(function(e) {
+    var d = new Date(e.date + 'T12:00:00');
+    var day = String(d.getDate()).padStart(2,'0');
+    var mon = d.toLocaleString('en-US',{month:'short'}).toUpperCase();
+    var now = new Date();
+    now.setHours(0,0,0,0);
+    var diff = Math.round((d - now) / (1000*60*60*24));
+    var daysLbl = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : 'In ' + diff + ' days';
+    var isToday = diff === 0;
+    var isSoon = diff <= 2;
+
+    var item = document.createElement('div');
+    item.className = 'upcoming-item' + (isToday ? ' today' : isSoon ? ' urgent' : '');
+
+    var dateDiv = document.createElement('div');
+    dateDiv.innerHTML = '<div class="upcoming-date">'+day+'</div><div class="upcoming-date-sub">'+mon+'</div>';
+
+    var titleDiv = document.createElement('div');
+    titleDiv.className = 'upcoming-title';
+    titleDiv.textContent = e.title.replace(' — Scheduled','');
+
+    var daysDiv = document.createElement('div');
+    daysDiv.className = 'upcoming-days' + (isToday ? ' today-lbl' : isSoon ? ' soon-lbl' : '');
+    daysDiv.textContent = daysLbl;
+
+    // Cancel button
+    var cancelBtn = document.createElement('button');
+    cancelBtn.style.cssText = 'background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:2px 6px;';
+    cancelBtn.textContent = '✕';
+    cancelBtn.title = 'Cancel';
+    cancelBtn.onclick = function(ev) {
+      ev.stopPropagation();
+      if (confirm('Cancel this scheduled event?')) {
+        entries = entries.filter(function(x){ return x.id !== e.id; });
+        saveEntries();
+        renderDashboard();
+        renderLogbook();
+      }
+    };
+
+    item.appendChild(dateDiv);
+    item.appendChild(titleDiv);
+    item.appendChild(daysDiv);
+    item.appendChild(cancelBtn);
+    wrap.appendChild(item);
+  });
+}
+
 function fetchWeather() {
   var wrap=document.getElementById('weather-wrap');
   if(!wrap) return;
@@ -713,8 +811,8 @@ function buildLogItem(e) {
   var d=new Date(e.date+'T12:00:00');
   var day=String(d.getDate()).padStart(2,'0');
   var mon=d.toLocaleString('en-US',{month:'short'}).toUpperCase();
-  var sc={'complete':'sb-complete','pending':'sb-pending','flagged':'sb-flagged'};
-  var sl={'complete':'Complete','pending':'Pending','flagged':'Flagged'};
+  var sc={'complete':'sb-complete','pending':'sb-pending','flagged':'sb-flagged','scheduled':'sb-scheduled'};
+  var sl={'complete':'Complete','pending':'Pending','flagged':'Flagged','scheduled':'Scheduled'};
 
   var wrap=document.createElement('div'); wrap.className='log-item';
 
@@ -818,7 +916,7 @@ function toggleDetail(id){
 var currentFilter='all';
 function renderLogbook(filter){
   var f=filter||currentFilter;
-  var filtered=f==='all'?entries:f==='pending'?entries.filter(function(e){return e.status!=='complete';}):entries.filter(function(e){return e.cat===f;});
+  var filtered=f==='all'?entries:f==='pending'?entries.filter(function(e){return e.status!=='complete';}):f==='scheduled'?entries.filter(function(e){return e.status==='scheduled';}):entries.filter(function(e){return e.cat===f;});
   var feed=document.getElementById('logbook-feed');
   feed.innerHTML='';
   if(filtered.length===0){feed.innerHTML='<div class="empty"><div class="empty-icon">◈</div><div class="empty-title">No entries</div></div>';return;}
@@ -847,17 +945,24 @@ function saveArrival(){
   if(!date){alert('Please select a date.');return;}
 
   var titles={
-    arrived:'Owner Arrived',guests:'Guests Arrived',
-    departed:'Owner / Guests Departed',ready:'Property Set to Ready',vacant:'Property Set to Vacant'
+    arrived:'Owner Arriving',guests:'Guests Arriving',
+    departed:'Owner / Guests Departing',ready:'Property Ready',vacant:'Property Vacant'
   };
   var statusMap={arrived:'occupied',guests:'occupied',departed:'vacant',ready:'ready',vacant:'vacant'};
 
-  var entry={id:Date.now(),date:date,time:time,title:titles[type]||type,cat:'status',area:'Whole Property',status:'complete',notes:notes||titles[type]};
+  var today=new Date().toISOString().split('T')[0];
+  var isFuture=date>today;
+  var isToday=date===today;
+
+  var entryStatus = isFuture ? 'scheduled' : 'complete';
+  var entryTitle = isFuture ? titles[type] + ' — Scheduled' : titles[type].replace(' — Scheduled','').replace('ing','ed').replace('Arriving','Arrived').replace('Departing','Departed');
+
+  var entry={id:Date.now(),date:date,time:time,title:entryTitle,cat:'status',area:'Whole Property',status:entryStatus,notes:notes||titles[type]};
   entries.unshift(entry);
   saveEntries();
 
-  // Also update property status
-  if(statusMap[type]) setStatusPill(statusMap[type]);
+  // Only update property status if today or past
+  if(!isFuture && statusMap[type]) setStatusPill(statusMap[type]);
 
   closeModal('modal-arrival');
   document.getElementById('arr-notes').value='';

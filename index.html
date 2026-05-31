@@ -204,9 +204,9 @@
     .upcoming-days.soon-lbl{color:var(--amber);font-weight:600;}
 
     /* CALENDAR */
-    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);table-layout:fixed;}
     .cal-header-cell{background:var(--bg2);padding:0.5rem;text-align:center;font-size:9px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--text2);}
-    .cal-cell{background:var(--bg1);min-height:70px;padding:0.4rem;cursor:pointer;transition:background 0.15s;position:relative;}
+    .cal-cell{background:var(--bg1);height:100px;padding:0.4rem;cursor:pointer;transition:background 0.15s;position:relative;overflow:hidden;vertical-align:top;}
     .cal-cell:hover{background:var(--bg2);}
     .cal-cell.other-month{opacity:0.3;}
     .cal-cell.today{border:1px solid var(--gold);background:rgba(201,169,110,0.05);}
@@ -378,9 +378,12 @@
       <div class="form-group">
         <label class="form-label">Event Type</label>
         <select class="form-ctrl" id="arr-type">
+          <option value="owner_arrival">Owner Arrival — Scheduled</option>
+          <option value="guest_arrival">Guest Arrival — Scheduled</option>
           <option value="arrived">Owner Arrived</option>
           <option value="guests">Guests Arrived</option>
           <option value="departed">Owner / Guests Departed</option>
+          <option value="departure_scheduled">Departure — Scheduled</option>
           <option value="ready">Property Set to Ready</option>
           <option value="vacant">Property Set to Vacant</option>
         </select>
@@ -595,6 +598,8 @@ if (!storedRaw || storedVer !== DEMO_VERSION) {
 }
 
 function saveEntries() {
+  // Keep sorted desc (newest first) for consistent display
+  entries.sort(function(a,b){ return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
   localStorage.setItem('lw-entries', JSON.stringify(entries));
   localStorage.setItem('lw-ver', DEMO_VERSION);
 }
@@ -1018,13 +1023,17 @@ function saveArrival(){
   if(!date){alert('Please select a date.');return;}
 
   var titles={
-    arrived:'Owner Arriving',guests:'Guests Arriving',
-    departed:'Owner / Guests Departing',ready:'Property Ready',vacant:'Property Vacant'
+    owner_arrival:'Owner Arrival',guest_arrival:'Guest Arrival',
+    arrived:'Owner Arrived',guests:'Guests Arrived',
+    departed:'Owner / Guests Departed',departure_scheduled:'Departure',
+    ready:'Property Set to Ready',vacant:'Property Set to Vacant'
   };
-  var statusMap={arrived:'occupied',guests:'occupied',departed:'vacant',ready:'ready',vacant:'vacant'};
+  var statusMap={arrived:'occupied',guests:'occupied',departed:'vacant',ready:'ready',vacant:'vacant',owner_arrival:'ready',guest_arrival:'ready',departure_scheduled:'departure'};
+  // Scheduled types — always future
+  var alwaysScheduled = ['owner_arrival','guest_arrival','departure_scheduled'];
 
   var today=new Date().toISOString().split('T')[0];
-  var isFuture=date>today;
+  var isFuture=date>today||alwaysScheduled.indexOf(type)!==-1;
   var isToday=date===today;
 
   var entryStatus = isFuture ? 'scheduled' : 'complete';

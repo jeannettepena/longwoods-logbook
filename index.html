@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>306 Longwoods Lane — Property Management</title>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="306 Longwoods">
+  <meta name="theme-color" content="#09090b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#09090b;--bg1:#111113;--bg2:#17171a;--bg3:#1e1e22;
+      --border:#27272a;--border2:#3f3f46;
+      --gold:#c9a96e;--gold2:#e8c98a;--gold3:#a08550;--gold-bg:rgba(201,169,110,0.08);
+      --text:#f4f4f5;--text2:#d4d4d8;--text3:#a1a1aa;
+      --green:#4ade80;--green-bg:rgba(74,222,128,0.1);
+      --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.1);
+      --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);
+      --red:#f87171;--red-bg:rgba(248,113,113,0.1);
+      --purple:#c084fc;--purple-bg:rgba(192,132,252,0.1);
+    }
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;font-weight:400;font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:3.5rem;}
+    h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:0.02em;}
+
+    /* LOGIN */
+
+
+    /* APP */
+    .app{display:none;flex-direction:column;min-height:100vh;}
+    .app.visible{display:flex;}
+
+    /* TOPBAR */
+    .topbar{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 2rem;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .topbar-brand{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.06em;}
+    .topbar-prop{font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);}
+    .topbar-right{display:flex;align-items:center;gap:0.75rem;}
+    .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:4px 12px;border-radius:2px;}
+    .status-pill::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .sp-vacant  {color:var(--text3);background:rgba(113,113,122,0.15);border:1px solid rgba(113,113,122,0.3);}
+    .sp-vacant::before{background:var(--text3);}
+    .sp-ready   {color:var(--gold);background:var(--gold-bg);border:1px solid rgba(201,169,110,0.3);}
+    .sp-ready::before{background:var(--gold);}
+    .sp-occupied{color:var(--green);background:var(--green-bg);border:1px solid rgba(74,222,128,0.3);}
+    .sp-occupied::before{background:var(--green);}
+    .sp-departure{color:var(--amber);background:var(--amber-bg);border:1px solid rgba(251,191,36,0.3);}
+    .sp-departure::before{background:var(--amber);}
+
+    .btn-xs{background:none;border:1px solid var(--border);color:var(--text3);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:0.35rem 0.85rem;cursor:pointer;transition:all 0.15s;}
+    .btn-xs:hover{border-color:var(--gold);color:var(--gold);}
+
+    /* NAV TABS */
+    .nav-tabs{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto;}
+    .nav-tab{font-size:12px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;padding:0.9rem 1.25rem;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Montserrat',sans-serif;}
+    .nav-tab:hover{color:var(--text);}
+    .nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+    /* MAIN */
+    .main{flex:1;padding:2rem;max-width:1100px;width:100%;margin:0 auto;}
+
+    /* VIEWS */
+    .view{display:none;}
+    .view.active{display:block;}
+
+    /* STATUS SWITCHER */
+    .status-switcher{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+    .ss-btn{background:none;border:1px solid var(--border);color:var(--text3);font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;padding:0.5rem 1.25rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all 0.15s;border-radius:0;}
+    .ss-btn:hover{border-color:var(--border2);color:var(--text);}
+    .ss-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+    /* KPI */
+    .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-bottom:1.5rem;}
+    .kpi{background:var(--bg1);padding:1.5rem;}
+    .kpi-label{font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;}
+    .kpi-val{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;color:var(--gold);}
+    .kpi-sub{font-size:12px;color:var(--text3);margin-top:0.2rem;}
+
+    /* WEATHER */
+    .weather-wrap{margin-bottom:1.5rem;}
+    .weather-loading{font-size:12px;color:var(--text3);padding:0.5rem 0;letter-spacing:0.08em;}
+    .weather-grid{display:grid;grid-template-columns:220px 1fr;gap:1px;background:var(--border);}
+    .weather-now{background:var(--bg1);padding:1.5rem;}
+    .weather-now-label{font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem;}
+    .weather-now-temp{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:300;color:var(--text);line-height:1;}
+    .weather-now-desc{font-size:13px;color:var(--text2);margin-top:0.35rem;}
+    .weather-now-meta{font-size:11px;color:var(--text3);margin-top:0.25rem;}
+    .weather-forecast{background:var(--bg1);padding:1.5rem;}
+    .weather-forecast-label{font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem;}
+    .weather-days{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);}
+    .weather-day{background:var(--bg2);padding:0.6rem 0.4rem;text-align:center;}
+    .wd-name{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.3rem;}
+    .wd-icon{font-size:1.1rem;margin-bottom:0.3rem;}
+    .wd-hi{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold);}
+    .wd-lo{font-size:10px;color:var(--text3);}
+    .wd-rain{font-size:10px;color:var(--blue);margin-top:2px;}
+    .storm-banner{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-left:3px solid var(--red);padding:0.85rem 1.25rem;margin-bottom:0.75rem;display:flex;align-items:flex-start;gap:0.75rem;}
+    .storm-icon{color:var(--red);font-size:1rem;flex-shrink:0;margin-top:1px;}
+    .storm-title{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);margin-bottom:0.2rem;}
+    .storm-desc{font-size:12px;color:var(--text2);}
+
+    /* QUICK ENTRY BUTTONS */
+    .quick-entry{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-bottom:1.5rem;}
+    .qe-btn{background:var(--bg1);border:none;padding:1.25rem 1.5rem;cursor:pointer;text-align:left;transition:background 0.15s;font-family:'Montserrat',sans-serif;}
+    .qe-btn:hover{background:var(--bg2);}
+    .qe-label{font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.35rem;}
+    .qe-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:300;color:var(--text);}
+    .qe-desc{font-size:11px;color:var(--text3);margin-top:0.2rem;}
+
+    /* FEED */
+    .feed-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+    .feed-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;}
+    .log-item{background:var(--bg1);border:1px solid var(--border);margin-bottom:1px;transition:background 0.15s;}
+    .log-item:hover{background:var(--bg2);}
+    .log-row{display:grid;grid-template-columns:80px 1fr auto;gap:1rem;padding:1rem 1.25rem;align-items:start;cursor:pointer;}
+    .log-date{text-align:center;}
+    .log-day{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:var(--gold);line-height:1;}
+    .log-month{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);}
+    .log-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px;}
+    .log-meta{font-size:12px;color:var(--text3);}
+    .log-badges{display:flex;flex-direction:column;align-items:flex-end;gap:0.35rem;}
+    .cat-badge{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px;white-space:nowrap;}
+    .cat-status   {color:var(--gold);background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);}
+    .cat-inspection{color:var(--gold);background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);}
+    .cat-vendor   {color:var(--green);background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);}
+    .cat-maintenance{color:var(--blue);background:var(--blue-bg);border:1px solid rgba(96,165,250,0.2);}
+    .cat-admin    {color:var(--text3);background:rgba(113,113,122,0.1);border:1px solid rgba(113,113,122,0.2);}
+    .cat-report   {color:var(--purple);background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);}
+    .cat-incident {color:var(--red);background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);}
+    .status-badge{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-complete{color:var(--green);}
+    .sb-pending {color:var(--amber);}
+    .sb-flagged {color:var(--red);}
+    .log-detail{padding:0 1.25rem 1rem;border-top:1px solid var(--border);display:none;}
+    .log-detail.open{display:block;padding-top:1rem;}
+    .log-notes{font-size:13px;color:var(--text2);line-height:1.8;background:var(--bg2);padding:0.9rem 1rem;border-left:2px solid var(--gold);margin-bottom:0.75rem;outline:none;cursor:text;min-height:2rem;-webkit-user-select:text;user-select:text;}
+    .log-notes:focus{background:var(--bg3);border-left-color:var(--gold2);}
+    .log-detail-row{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:0.75rem;}
+    .ld-item{}
+    .ld-label{font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+    .ld-val{font-size:13px;color:var(--text);outline:none;border-bottom:1px dashed rgba(201,169,110,0.35);cursor:text;min-width:10px;padding:1px 2px;transition:background 0.15s;}
+    .ld-val:focus{background:rgba(201,169,110,0.06);border-radius:2px;}
+
+    /* FILTERS */
+    .filter-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+
+    /* QUICK MODALS */
+    .qmodal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;}
+    .qmodal-overlay.open{display:flex;}
+    .qmodal{background:var(--bg1);border:1px solid var(--border2);border-top:2px solid var(--gold);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;}
+    .qm-hd{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .qm-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;}
+    .qm-close{background:none;border:none;color:var(--text3);font-size:1.1rem;cursor:pointer;padding:4px 8px;}
+    .qm-close:hover{color:var(--red);}
+    .qm-body{padding:1.5rem;}
+    .qm-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.75rem;}
+    .form-group{display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1rem;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .form-label{font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);}
+    .form-ctrl{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'Montserrat',sans-serif;font-size:14px;font-weight:300;padding:0.75rem 1rem;outline:none;border-radius:0;-webkit-appearance:none;transition:border-color 0.2s;}
+    .form-ctrl:focus{border-color:var(--gold3);}
+    .form-ctrl::placeholder{color:var(--text3);}
+    .form-ctrl option{background:#17171a;}
+    textarea.form-ctrl{resize:vertical;min-height:90px;}
+    .btn-primary{background:var(--gold);color:#09090b;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;padding:0.75rem 1.5rem;border:none;cursor:pointer;transition:background 0.15s;}
+    .btn-primary:hover{background:var(--gold2);}
+    .btn-ghost{background:none;border:1px solid var(--border);color:var(--text3);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;padding:0.75rem 1.5rem;cursor:pointer;transition:all 0.15s;}
+    .btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+
+    /* SERVICES */
+    .svc-section{margin-bottom:1.5rem;}
+    .svc-hdr{background:var(--bg2);padding:0.75rem 1.25rem;font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);border:1px solid var(--border);margin-bottom:1px;}
+    .svc-row{display:grid;grid-template-columns:1fr auto auto;gap:1.5rem;align-items:center;padding:0.9rem 1.25rem;background:var(--bg1);border:1px solid var(--border);border-top:none;}
+    .svc-name{font-size:14px;color:var(--text);}
+    .svc-detail{font-size:12px;color:var(--text3);margin-top:2px;}
+    .svc-freq{font-size:11px;color:var(--text3);white-space:nowrap;text-align:right;}
+    .svc-price{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--gold);white-space:nowrap;text-align:right;}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:4rem 2rem;}
+    .empty-icon{font-size:2rem;opacity:0.15;margin-bottom:1rem;}
+    .empty-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--text3);}
+
+    /* BOTTOM BAR */
+    .bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(9,9,11,0.97);backdrop-filter:blur(12px);border-top:1px solid rgba(201,169,110,0.2);padding:0.6rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+    .bottom-bar span{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);opacity:0.6;}
+    .bottom-bar-btns{display:flex;gap:0.6rem;}
+
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+    @media(max-width:768px){
+      .kpi-grid{grid-template-columns:1fr 1fr;}
+      .weather-grid{grid-template-columns:1fr;}
+      .quick-entry{grid-template-columns:1fr;}
+      .log-row{grid-template-columns:60px 1fr;}
+      .log-badges{display:none;}
+      .main{padding:1rem;}
+      .topbar{padding:0 1rem;}
+      .nav-tabs{padding:0 0.75rem;}
+      .form-row{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+
+
+
+<!-- APP -->
+<div class="app visible" id="app">
+
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <div class="topbar-brand">58°</div>
+      <div class="topbar-prop">306 Longwoods Lane</div>
+    </div>
+    <div class="topbar-right">
+      <div class="status-pill sp-vacant" id="status-pill">Vacant</div>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('dashboard',this)">Dashboard</button>
+    <button class="nav-tab" onclick="showTab('logbook',this)">Logbook</button>
+    <button class="nav-tab" onclick="showTab('services',this)">Services</button>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div style="margin-bottom:1.5rem;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;" id="dash-greeting">Good morning</div>
+        <div style="font-size:13px;color:var(--text3);" id="dash-date"></div>
+      </div>
+
+      <!-- STATUS -->
+      <div style="font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:0.6rem;">Property Status</div>
+      <div class="status-switcher" id="status-switcher"></div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Last Entry</div><div class="kpi-val" id="kpi-last" style="font-size:1.4rem;">—</div><div class="kpi-sub" id="kpi-last-sub"></div></div>
+        <div class="kpi"><div class="kpi-label">This Month</div><div class="kpi-val" id="kpi-month">0</div><div class="kpi-sub" id="kpi-month-lbl">entries</div></div>
+        <div class="kpi"><div class="kpi-label">Open Items</div><div class="kpi-val" id="kpi-open">0</div><div class="kpi-sub">pending</div></div>
+      </div>
+
+      <!-- WEATHER -->
+      <div class="weather-wrap" id="weather-wrap">
+        <div class="weather-loading">Loading Houston weather...</div>
+      </div>
+
+      <!-- QUICK ENTRY (staff only) -->
+      <div id="quick-entry-section">
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:0.6rem;">Quick Log</div>
+        <div class="quick-entry">
+          <button class="qe-btn" onclick="openArrivalModal()">
+            <div class="qe-label" style="color:var(--green);">Arrival / Departure</div>
+            <div class="qe-title">Owner or Guest Status</div>
+            <div class="qe-desc">Log arrival, departure, or occupancy change</div>
+          </button>
+          <button class="qe-btn" onclick="openVendorModal()">
+            <div class="qe-label" style="color:var(--blue);">Vendor Visit</div>
+            <div class="qe-title">Log Vendor Entry</div>
+            <div class="qe-desc">Pool, HVAC, landscaping, repairs, and more</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- RECENT FEED -->
+      <div class="feed-header">
+        <div class="feed-title">Recent Activity</div>
+        <button class="btn-xs" onclick="openFullEntry()">+ New Entry</button>
+      </div>
+      <div id="dash-feed"></div>
+    </div>
+
+    <!-- LOGBOOK -->
+    <div class="view" id="view-logbook">
+      <div class="feed-header">
+        <div class="feed-title">Property Logbook</div>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn-xs" onclick="exportCSV()">Export</button>
+          <button class="btn-xs" onclick="openFullEntry()">+ Entry</button>
+        </div>
+      </div>
+      <div class="filter-row" id="filter-row">
+        <button class="btn-xs" style="border-color:var(--gold);color:var(--gold);" onclick="filterLog('all',this)">All</button>
+        <button class="btn-xs" onclick="filterLog('status',this)">Status</button>
+        <button class="btn-xs" onclick="filterLog('inspection',this)">Inspection</button>
+        <button class="btn-xs" onclick="filterLog('vendor',this)">Vendor</button>
+        <button class="btn-xs" onclick="filterLog('maintenance',this)">Maintenance</button>
+        <button class="btn-xs" onclick="filterLog('admin',this)">Admin</button>
+        <button class="btn-xs" onclick="filterLog('pending',this)" style="color:var(--amber);">⚠ Pending</button>
+      </div>
+      <div id="logbook-feed"></div>
+    </div>
+
+    <!-- SERVICES -->
+    <div class="view" id="view-services">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;margin-bottom:1.5rem;">Service Rates</div>
+      <div id="services-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ARRIVAL/DEPARTURE MODAL -->
+<div class="qmodal-overlay" id="modal-arrival">
+  <div class="qmodal">
+    <div class="qm-hd">
+      <div class="qm-title">Arrival / Departure Log</div>
+      <button class="qm-close" onclick="closeModal('modal-arrival')">✕</button>
+    </div>
+    <div class="qm-body">
+      <div class="form-group">
+        <label class="form-label">Event Type</label>
+        <select class="form-ctrl" id="arr-type">
+          <option value="arrived">Owner Arrived</option>
+          <option value="guests">Guests Arrived</option>
+          <option value="departed">Owner / Guests Departed</option>
+          <option value="ready">Property Set to Ready</option>
+          <option value="vacant">Property Set to Vacant</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-ctrl" id="arr-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <input type="time" class="form-ctrl" id="arr-time">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-ctrl" id="arr-notes" placeholder="Additional details, number of guests, special instructions..."></textarea>
+      </div>
+    </div>
+    <div class="qm-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-arrival')">Cancel</button>
+      <button class="btn-primary" onclick="saveArrival()">Log Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- VENDOR MODAL -->
+<div class="qmodal-overlay" id="modal-vendor">
+  <div class="qmodal">
+    <div class="qm-hd">
+      <div class="qm-title">Vendor Visit Log</div>
+      <button class="qm-close" onclick="closeModal('modal-vendor')">✕</button>
+    </div>
+    <div class="qm-body">
+      <div class="form-group">
+        <label class="form-label">Vendor / Service</label>
+        <select class="form-ctrl" id="ven-type">
+          <option>Pool Service</option>
+          <option>HVAC — G&GB Air Conditioning</option>
+          <option>Landscaping — Tree Landscaping</option>
+          <option>Water Filtration — Bee Builders</option>
+          <option>Roof / Skylights — Erin Smith & Sons</option>
+          <option>Security System</option>
+          <option>Elevator — Mike Stephens</option>
+          <option>Appliances — Baths of America</option>
+          <option>Pest Control</option>
+          <option>Plumbing</option>
+          <option>Electrical</option>
+          <option>Other Vendor</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-ctrl" id="ven-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-ctrl" id="ven-status">
+            <option value="complete">Complete</option>
+            <option value="pending">Pending Follow-Up</option>
+            <option value="flagged">Issue Flagged</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Work Performed / Notes</label>
+        <textarea class="form-ctrl" id="ven-notes" placeholder="What was done, findings, next steps, invoice status..."></textarea>
+      </div>
+    </div>
+    <div class="qm-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-vendor')">Cancel</button>
+      <button class="btn-primary" onclick="saveVendor()">Log Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- FULL ENTRY MODAL -->
+<div class="qmodal-overlay" id="modal-full">
+  <div class="qmodal">
+    <div class="qm-hd">
+      <div class="qm-title">New Log Entry</div>
+      <button class="qm-close" onclick="closeModal('modal-full')">✕</button>
+    </div>
+    <div class="qm-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-ctrl" id="e-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-ctrl" id="e-cat">
+            <option value="inspection">Inspection</option>
+            <option value="vendor">Vendor</option>
+            <option value="maintenance">Maintenance</option>
+            <option value="admin">Administrative</option>
+            <option value="report">Owner Report</option>
+            <option value="incident">Incident</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" class="form-ctrl" id="e-title" placeholder="Brief description">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Area</label>
+          <select class="form-ctrl" id="e-area">
+            <option>Whole Property</option>
+            <option>Main House</option>
+            <option>Guest House</option>
+            <option>Pool / Spa</option>
+            <option>HVAC / Systems</option>
+            <option>Exterior / Grounds</option>
+            <option>Administrative</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-ctrl" id="e-status">
+            <option value="complete">Complete</option>
+            <option value="pending">Pending</option>
+            <option value="flagged">Flagged</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-ctrl" id="e-notes" placeholder="Detailed observations, work performed, follow-up items..."></textarea>
+      </div>
+    </div>
+    <div class="qm-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-full')">Cancel</button>
+      <button class="btn-primary" onclick="saveFullEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <span>306 Longwoods Lane · Fifty Eight Degrees LLC</span>
+  <div class="bottom-bar-btns">
+    <button class="btn-xs" onclick="window.print()">PDF</button>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────
+var ROLE = 'staff';
+var propertyStatus = localStorage.getItem('lw-status') || 'vacant';
+var DEMO_VERSION = 'v20260601';
+
+function makeDemoEntries() {
+  var now = new Date();
+  function daysAgo(n) {
+    var d = new Date(now); d.setDate(d.getDate()-n);
+    return d.toISOString().split('T')[0];
+  }
+  return [
+    {id:1000001,date:daysAgo(0),time:'08:00',title:'Property Status — Vacant',cat:'status',area:'Whole Property',status:'complete',notes:'Property currently vacant. All systems on maintenance mode. Security armed.'},
+    {id:1000002,date:daysAgo(2),time:'09:15',title:'Weekly Inspection — All Systems Normal',cat:'inspection',area:'Whole Property',status:'complete',notes:'Full walkthrough completed. Pool at 74F, all HVAC zones operating. Lutron tested. Water filtration running, no leaks. Zone 3 sprinkler head replaced. No issues to report.'},
+    {id:1000003,date:daysAgo(6),time:'10:30',title:'HVAC Service — G&GB Air Conditioning',cat:'vendor',area:'HVAC / Systems',status:'complete',notes:'All 15 zones serviced, filters replaced. Zone 7 minor coil wear cleaned. Invoice forwarded to owner. Next service Q3.'},
+    {id:1000004,date:daysAgo(10),time:'09:00',title:'Pool Filter Quarterly Service',cat:'vendor',area:'Pool / Spa',status:'pending',notes:'Filter 2 showing wear, replacement recommended within 60 days. Sourcing replacement vendor for Landmark Pool. Pentair pump operational. Chemistry balanced.'},
+    {id:1000005,date:daysAgo(14),time:'08:00',title:'Property Tax — Harris County Coordinated',cat:'admin',area:'Administrative',status:'complete',notes:'Annual tax statement received. Payment processed by Jan 31. Receipt filed. Reminder set for December.'},
+    {id:1000006,date:daysAgo(22),time:'09:00',title:'Monthly Owner Report — Delivered',cat:'report',area:'Whole Property',status:'complete',notes:'Monthly report delivered. 4 vendor visits, 3 inspections, pool maintained, HVAC filters replaced. HOA and insurance current. Reserve reconciled.'},
+  ];
+}
+
+var storedRaw = localStorage.getItem('lw-entries');
+var storedVer = localStorage.getItem('lw-ver');
+var entries = (storedRaw && storedVer === DEMO_VERSION) ? JSON.parse(storedRaw) : makeDemoEntries();
+if (!storedRaw || storedVer !== DEMO_VERSION) {
+  localStorage.setItem('lw-entries', JSON.stringify(entries));
+  localStorage.setItem('lw-ver', DEMO_VERSION);
+}
+
+function saveEntries() {
+  localStorage.setItem('lw-entries', JSON.stringify(entries));
+  localStorage.setItem('lw-ver', DEMO_VERSION);
+}
+
+// ─── SERVICES ────────────────────────────────────────────────────────────
+var SERVICES = [
+  { section:'Property Management', rows:[
+    {name:'Monthly Management Fee',detail:'Weekly inspections · vendor coordination · reporting · 3 visits/week max',price:'$3,500',freq:'Monthly'},
+    {name:'Management Reserve',detail:'Operational float · reconciled monthly',price:'$2,500',freq:'Monthly'},
+  ]},
+  { section:'Additional Hours', rows:[
+    {name:'Jeannette Peña — Extra Hour',detail:'Advisory · vendor supervision · project management · consulting',price:'$175',freq:'Per hour'},
+    {name:'Staff Available — On-Site Reception',detail:'Receive packages or grocery deliveries · coordination only · 3 hr min',price:'$35',freq:'Per hour'},
+  ]},
+  { section:'Annual Obligations', rows:[
+    {name:'Homeowner Insurance',detail:'Monitored and coordinated annually by assistant',price:'Included',freq:'Annual'},
+    {name:'Property Taxes — Harris County',detail:'Tracked · due Jan 31 · coordinated by assistant',price:'Included',freq:'Annual'},
+    {name:'HOA Dues',detail:'Monitored and coordinated by assistant',price:'Included',freq:'Quarterly'},
+  ]},
+  { section:'Glass & Window Services', rows:[
+    {name:'Exterior Glass — Both Residences',detail:'Double-height windows · pool area · guest house · 9 doors · 11 skylights',price:'$3,250',freq:'3x / year'},
+    {name:'Skylight Cleaning',detail:'11 units · rooftop level · every 6 weeks recommended',price:'$750',freq:'Every 6 weeks'},
+  ]},
+];
+
+// ─── AUTO INIT ───────────────────────────────────────────────────────────
+
+// ─── INIT ────────────────────────────────────────────────────────────────
+window.onload = initApp;
+function initApp() {
+  var now = new Date();
+  var hr = now.getHours();
+  document.getElementById('dash-greeting').textContent = hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  document.getElementById('dash-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('e-date').value = now.toISOString().split('T')[0];
+  document.getElementById('arr-date').value = now.toISOString().split('T')[0];
+  document.getElementById('arr-time').value = now.toTimeString().slice(0,5);
+  document.getElementById('ven-date').value = now.toISOString().split('T')[0];
+  setStatusPill(propertyStatus);
+  renderDashboard();
+  renderServices();
+}
+
+// ─── STATUS ──────────────────────────────────────────────────────────────
+var STATUS_LABELS = {vacant:'Vacant',ready:'Ready',occupied:'Occupied',departure:'Departure'};
+var STATUS_COLORS = {vacant:'var(--text3)',ready:'var(--gold)',occupied:'var(--green)',departure:'var(--amber)'};
+var STATUS_DOTS   = {vacant:'#71717a',ready:'#c9a96e',occupied:'#4ade80',departure:'#fbbf24'};
+
+function setStatusPill(s) {
+  propertyStatus = s;
+  localStorage.setItem('lw-status', s);
+  var pill = document.getElementById('status-pill');
+  pill.textContent = STATUS_LABELS[s]||s;
+  pill.className = 'status-pill sp-'+s;
+}
+
+function changeStatus(s) {
+  var prev = propertyStatus;
+  if (prev === s) return;
+  setStatusPill(s);
+
+  // Auto-log entry
+  var descs = {
+    vacant:   'Property set to Vacant — house unoccupied. Security armed, systems on maintenance mode.',
+    ready:    'Property set to Ready — fully prepared for owner or guest arrival. Systems verified.',
+    occupied: 'Property set to Occupied — owner or guests on site.',
+    departure:'Property set to Departure — post-stay restoration in progress.',
+  };
+  var entry = {
+    id: Date.now(),
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0,5),
+    title: 'Status — ' + STATUS_LABELS[s],
+    cat: 'status',
+    area: 'Whole Property',
+    status: 'complete',
+    notes: descs[s] || '',
+  };
+  entries.unshift(entry);
+  saveEntries();
+  renderDashboard();
+  renderLogbook();
+}
+
+// ─── RENDER DASHBOARD ────────────────────────────────────────────────────
+function renderDashboard() {
+  // Status switcher
+  var sw = document.getElementById('status-switcher');
+  sw.innerHTML = '';
+  ['vacant','ready','occupied','departure'].forEach(function(s) {
+    var btn = document.createElement('button');
+    btn.className = 'ss-btn';
+    var isActive = propertyStatus===s;
+    btn.style.borderColor = isActive ? STATUS_DOTS[s] : '';
+    btn.style.color = isActive ? STATUS_COLORS[s] : '';
+    btn.style.background = isActive ? 'rgba(201,169,110,0.06)' : '';
+    btn.innerHTML = '<span class="ss-dot" style="background:'+STATUS_DOTS[s]+';opacity:'+(isActive?1:0.3)+';"></span>'+STATUS_LABELS[s];
+    btn.onclick = function(){ if(ROLE==='staff') changeStatus(s); };
+    if (ROLE==='owner') btn.style.cursor='default';
+    sw.appendChild(btn);
+  });
+
+  // KPIs
+  var now = new Date();
+  var mth = entries.filter(function(e){
+    var d=new Date(e.date+'T12:00:00');
+    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  });
+  document.getElementById('kpi-month').textContent = mth.length;
+  document.getElementById('kpi-month-lbl').textContent = now.toLocaleString('en-US',{month:'long'});
+  document.getElementById('kpi-open').textContent = entries.filter(function(e){return e.status!=='complete';}).length;
+  if (entries.length>0) {
+    var last=entries[0];
+    var ld=new Date(last.date+'T12:00:00');
+    document.getElementById('kpi-last').textContent=ld.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    document.getElementById('kpi-last-sub').textContent=last.title.slice(0,35);
+  }
+
+  // Weather
+  fetchWeather();
+
+  // Feed
+  var feed=document.getElementById('dash-feed');
+  feed.innerHTML='';
+  if(entries.length===0){feed.innerHTML='<div class="empty"><div class="empty-icon">◈</div><div class="empty-title">No entries yet</div></div>';return;}
+  entries.slice(0,8).forEach(function(e){feed.appendChild(buildLogItem(e));});
+}
+
+// ─── WEATHER ─────────────────────────────────────────────────────────────
+function fetchWeather() {
+  var wrap=document.getElementById('weather-wrap');
+  if(!wrap) return;
+  var url='https://api.open-meteo.com/v1/forecast?latitude=29.7604&longitude=-95.3698'+
+    '&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m'+
+    '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max'+
+    '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FChicago&forecast_days=7';
+
+  fetch(url).then(function(r){return r.json();}).then(function(data){
+    var cur=data.current, daily=data.daily;
+    var temp=Math.round(cur.temperature_2m);
+    var wind=Math.round(cur.windspeed_10m);
+    var hum=cur.relativehumidity_2m;
+    var icon=wIcon(cur.weathercode);
+    var desc=wDesc(cur.weathercode);
+    var dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    // Storm alerts
+    var alerts='';
+    daily.weathercode.forEach(function(code,i){
+      if(code>=80&&i<4){
+        var dname=i===0?'Today':i===1?'Tomorrow':new Date(daily.time[i]+'T12:00:00').toLocaleDateString('en-US',{weekday:'long'});
+        var pct=daily.precipitation_probability_max[i];
+        alerts+='<div class="storm-banner"><div class="storm-icon">⚠</div>'+
+          '<div><div class="storm-title">Storm Alert — '+dname+'</div>'+
+          '<div class="storm-desc">'+wDesc(code)+' · '+pct+'% precipitation · Roof and drainage check recommended</div></div></div>';
+      }
+    });
+
+    // 7-day forecast
+    var days='';
+    for(var i=0;i<7;i++){
+      var d=new Date(daily.time[i]+'T12:00:00');
+      var hi=Math.round(daily.temperature_2m_max[i]);
+      var lo=Math.round(daily.temperature_2m_min[i]);
+      var pct2=daily.precipitation_probability_max[i];
+      days+='<div class="weather-day">'+
+        '<div class="wd-name">'+(i===0?'Today':dayNames[d.getDay()])+'</div>'+
+        '<div class="wd-icon">'+wIcon(daily.weathercode[i])+'</div>'+
+        '<div class="wd-hi">'+hi+'°</div>'+
+        '<div class="wd-lo">'+lo+'°</div>'+
+        (pct2>25?'<div class="wd-rain">'+pct2+'%</div>':'')+'</div>';
+    }
+
+    wrap.innerHTML=alerts+
+      '<div class="weather-grid">'+
+        '<div class="weather-now">'+
+          '<div class="weather-now-label">Houston, TX</div>'+
+          '<div class="weather-now-temp">'+icon+' '+temp+'°F</div>'+
+          '<div class="weather-now-desc">'+desc+'</div>'+
+          '<div class="weather-now-meta">'+wind+' mph · '+hum+'% humidity · '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+'</div>'+
+        '</div>'+
+        '<div class="weather-forecast">'+
+          '<div class="weather-forecast-label">7-Day Forecast</div>'+
+          '<div class="weather-days">'+days+'</div>'+
+        '</div>'+
+      '</div>';
+  }).catch(function(){
+    wrap.innerHTML='<div class="weather-loading">Weather data unavailable</div>';
+  });
+}
+
+function wDesc(c){
+  if(c===0)return'Clear sky';if(c<=2)return'Partly cloudy';if(c===3)return'Overcast';
+  if(c<=49)return'Foggy';if(c<=59)return'Drizzle';if(c<=69)return'Rain';
+  if(c<=79)return'Snow / Sleet';if(c<=82)return'Rain showers';if(c<=84)return'Heavy showers';
+  if(c<=99)return'Thunderstorm';return'Unknown';
+}
+function wIcon(c){
+  if(c===0)return'☀️';if(c<=2)return'⛅';if(c===3)return'☁️';if(c<=49)return'🌫️';
+  if(c<=59)return'🌦️';if(c<=69)return'🌧️';if(c<=79)return'❄️';
+  if(c<=82)return'🌧️';if(c<=99)return'⛈️';return'🌡️';
+}
+
+// ─── LOG ITEMS ───────────────────────────────────────────────────────────
+function buildLogItem(e) {
+  var d=new Date(e.date+'T12:00:00');
+  var day=String(d.getDate()).padStart(2,'0');
+  var mon=d.toLocaleString('en-US',{month:'short'}).toUpperCase();
+  var sc={'complete':'sb-complete','pending':'sb-pending','flagged':'sb-flagged'};
+  var sl={'complete':'Complete','pending':'Pending','flagged':'Flagged'};
+
+  var wrap=document.createElement('div'); wrap.className='log-item';
+
+  var row=document.createElement('div'); row.className='log-row';
+  row.onclick=function(){toggleDetail(e.id);};
+
+  var dateDiv=document.createElement('div'); dateDiv.className='log-date';
+  dateDiv.innerHTML='<div class="log-day">'+day+'</div><div class="log-month">'+mon+'</div>';
+
+  var mid=document.createElement('div');
+  var titleEl=document.createElement('div'); titleEl.className='log-title'; titleEl.textContent=e.title;
+  if(ROLE==='staff'){
+    titleEl.contentEditable='true'; titleEl.spellcheck=false; titleEl.style.outline='none';
+    titleEl.onclick=function(ev){ev.stopPropagation();};
+    titleEl.onblur=function(){e.title=titleEl.textContent;saveEntries();};
+  }
+  var metaEl=document.createElement('div'); metaEl.className='log-meta'; metaEl.textContent=e.area;
+  mid.appendChild(titleEl); mid.appendChild(metaEl);
+
+  var badges=document.createElement('div'); badges.className='log-badges';
+  var cb=document.createElement('span'); cb.className='cat-badge cat-'+(e.cat||'inspection'); cb.textContent=e.cat||'inspection';
+  var sb=document.createElement('span'); sb.className='status-badge '+(sc[e.status]||'sb-complete'); sb.textContent=sl[e.status]||'Complete';
+  badges.appendChild(cb); badges.appendChild(sb);
+
+  row.appendChild(dateDiv); row.appendChild(mid); row.appendChild(badges);
+  wrap.appendChild(row);
+
+  // Detail
+  var detail=document.createElement('div'); detail.className='log-detail'; detail.id='ld-'+e.id;
+
+  // Area + Status editable
+  // Edit hint
+  var editHint=document.createElement('div');
+  editHint.style.cssText='font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);opacity:0.5;margin-bottom:0.75rem;';
+  editHint.textContent='Click any field to edit · Status dropdown to update';
+  detail.appendChild(editHint);
+
+  // Edit hint
+  var eh=document.createElement('div');
+  eh.style.cssText='font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);opacity:0.45;margin-bottom:0.75rem;';
+  eh.textContent='Click any field to edit';
+  detail.appendChild(eh);
+
+  // Edit hint
+  var eh=document.createElement('div');
+  eh.style.cssText='font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);opacity:0.45;margin-bottom:0.75rem;';
+  eh.textContent='Click any field to edit · Use status dropdown to update';
+  detail.appendChild(eh);
+
+  var detRow=document.createElement('div'); detRow.className='log-detail-row';
+  var areaItem=document.createElement('div'); areaItem.className='ld-item';
+  var aLbl=document.createElement('div'); aLbl.className='ld-label'; aLbl.textContent='Area';
+  var aVal=document.createElement('div'); aVal.className='ld-val'; aVal.textContent=e.area||'—';
+  if(ROLE==='staff'){aVal.contentEditable='true';aVal.spellcheck=false;aVal.onblur=function(){e.area=aVal.textContent;saveEntries();};}
+  areaItem.appendChild(aLbl); areaItem.appendChild(aVal);
+
+  var statItem=document.createElement('div'); statItem.className='ld-item';
+  var sLbl=document.createElement('div'); sLbl.className='ld-label'; sLbl.textContent='Status';
+  var sSel=document.createElement('select');
+  sSel.style.cssText='background:var(--bg2);border:1px solid var(--border2);color:'+(e.status==='flagged'?'var(--red)':e.status==='pending'?'var(--amber)':'var(--green)')+';font-family:Montserrat,sans-serif;font-size:13px;font-weight:600;padding:3px 10px;outline:none;cursor:pointer;-webkit-appearance:none;';
+  ['complete','pending','flagged'].forEach(function(v){
+    var o=document.createElement('option');o.value=v;o.textContent=v.charAt(0).toUpperCase()+v.slice(1);
+    o.style.background='#17171a';if(e.status===v)o.selected=true;sSel.appendChild(o);
+  });
+  sSel.onchange=function(){e.status=sSel.value;saveEntries();renderDashboard();renderLogbook();};
+  if(ROLE==='owner') sSel.disabled=true;
+  statItem.appendChild(sLbl); statItem.appendChild(sSel);
+
+  detRow.appendChild(areaItem); detRow.appendChild(statItem);
+  detail.appendChild(detRow);
+
+  // Notes
+  var notes=document.createElement('div'); notes.className='log-notes';
+  notes.innerHTML=(e.notes||'').split('\n').join('<br>');
+  if(ROLE==='staff'){
+    notes.contentEditable='true'; notes.spellcheck=false;
+    notes.onblur=function(){e.notes=notes.innerText;saveEntries();};
+  }
+  detail.appendChild(notes);
+
+  // Delete (staff)
+  if(ROLE==='staff'){
+    var delRow=document.createElement('div'); delRow.style.cssText='display:flex;justify-content:flex-end;margin-top:0.75rem;';
+    var delBtn=document.createElement('button');
+    delBtn.style.cssText='background:none;border:1px solid rgba(248,113,113,0.3);color:var(--red);font-family:Montserrat,sans-serif;font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:0.35rem 0.9rem;cursor:pointer;';
+    delBtn.textContent='Delete';
+    delBtn.onclick=function(){if(confirm('Delete this entry?')){entries=entries.filter(function(x){return x.id!==e.id;});saveEntries();renderDashboard();renderLogbook();}};
+    delRow.appendChild(delBtn); detail.appendChild(delRow);
+  }
+
+  wrap.appendChild(detail);
+  return wrap;
+}
+
+function toggleDetail(id){
+  var el=document.getElementById('ld-'+id);
+  if(el) el.classList.toggle('open');
+}
+
+// ─── LOGBOOK ─────────────────────────────────────────────────────────────
+var currentFilter='all';
+function renderLogbook(filter){
+  var f=filter||currentFilter;
+  var filtered=f==='all'?entries:f==='pending'?entries.filter(function(e){return e.status!=='complete';}):entries.filter(function(e){return e.cat===f;});
+  var feed=document.getElementById('logbook-feed');
+  feed.innerHTML='';
+  if(filtered.length===0){feed.innerHTML='<div class="empty"><div class="empty-icon">◈</div><div class="empty-title">No entries</div></div>';return;}
+  filtered.forEach(function(e){feed.appendChild(buildLogItem(e));});
+}
+function filterLog(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('#filter-row .btn-xs').forEach(function(b){b.style.borderColor='';b.style.color='';});
+  btn.style.borderColor=f==='pending'?'var(--amber)':'var(--gold)';
+  btn.style.color=f==='pending'?'var(--amber)':'var(--gold)';
+  renderLogbook(f);
+}
+
+// ─── QUICK MODALS ────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function openArrivalModal(){openModal('modal-arrival');}
+function openVendorModal(){openModal('modal-vendor');}
+function openFullEntry(){openModal('modal-full');}
+
+function saveArrival(){
+  var type=document.getElementById('arr-type').value;
+  var date=document.getElementById('arr-date').value;
+  var time=document.getElementById('arr-time').value;
+  var notes=document.getElementById('arr-notes').value.trim();
+  if(!date){alert('Please select a date.');return;}
+
+  var titles={
+    arrived:'Owner Arrived',guests:'Guests Arrived',
+    departed:'Owner / Guests Departed',ready:'Property Set to Ready',vacant:'Property Set to Vacant'
+  };
+  var statusMap={arrived:'occupied',guests:'occupied',departed:'vacant',ready:'ready',vacant:'vacant'};
+
+  var entry={id:Date.now(),date:date,time:time,title:titles[type]||type,cat:'status',area:'Whole Property',status:'complete',notes:notes||titles[type]};
+  entries.unshift(entry);
+  saveEntries();
+
+  // Also update property status
+  if(statusMap[type]) setStatusPill(statusMap[type]);
+
+  closeModal('modal-arrival');
+  document.getElementById('arr-notes').value='';
+  renderDashboard();
+  renderLogbook();
+}
+
+function saveVendor(){
+  var type=document.getElementById('ven-type').value;
+  var date=document.getElementById('ven-date').value;
+  var status=document.getElementById('ven-status').value;
+  var notes=document.getElementById('ven-notes').value.trim();
+  if(!date){alert('Please select a date.');return;}
+  if(!notes){alert('Please add notes.');return;}
+
+  var entry={id:Date.now(),date:date,time:'',title:type,cat:'vendor',area:'Whole Property',status:status,notes:notes};
+  entries.unshift(entry);
+  saveEntries();
+  closeModal('modal-vendor');
+  document.getElementById('ven-notes').value='';
+  renderDashboard();
+  renderLogbook();
+}
+
+function saveFullEntry(){
+  var title=document.getElementById('e-title').value.trim();
+  if(!title){alert('Please add a title.');return;}
+  var entry={
+    id:Date.now(),
+    date:document.getElementById('e-date').value,
+    time:'',
+    title:title,
+    cat:document.getElementById('e-cat').value,
+    area:document.getElementById('e-area').value,
+    status:document.getElementById('e-status').value,
+    notes:document.getElementById('e-notes').value.trim(),
+  };
+  entries.unshift(entry);
+  saveEntries();
+  document.getElementById('e-title').value='';
+  document.getElementById('e-notes').value='';
+  closeModal('modal-full');
+  renderDashboard();
+  renderLogbook();
+}
+
+// ─── SERVICES ────────────────────────────────────────────────────────────
+function renderServices(){
+  var c=document.getElementById('services-list'); c.innerHTML='';
+  SERVICES.forEach(function(s){
+    var sec=document.createElement('div'); sec.className='svc-section';
+    var hdr=document.createElement('div'); hdr.className='svc-hdr'; hdr.textContent=s.section;
+    sec.appendChild(hdr);
+    s.rows.forEach(function(r){
+      var row=document.createElement('div'); row.className='svc-row';
+      row.innerHTML='<div><div class="svc-name">'+r.name+'</div><div class="svc-detail">'+r.detail+'</div></div>'+
+        '<div class="svc-freq">'+r.freq+'</div>'+
+        '<div class="svc-price">'+r.price+'</div>';
+      sec.appendChild(row);
+    });
+    c.appendChild(sec);
+  });
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────
+function showTab(name,btn){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('view-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='logbook') renderLogbook();
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────
+function exportCSV(){
+  if(!entries.length){alert('No entries.');return;}
+  var h=['Date','Title','Category','Area','Status','Notes'];
+  var rows=entries.map(function(e){return[e.date,'"'+e.title+'"',e.cat,e.area,e.status,'"'+((e.notes||'').replace(/"/g,'""'))+'"'];});
+  var csv=[h].concat(rows).map(function(r){return r.join(',');}).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='longwoods-logbook.csv';a.click();
+}
+</script>
+</body>
+</html>

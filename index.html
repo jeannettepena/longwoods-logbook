@@ -301,9 +301,9 @@
             <div class="qe-desc">Log arrival, departure, or occupancy change</div>
           </button>
           <button class="qe-btn" onclick="openVendorModal()">
-            <div class="qe-label" style="color:var(--blue);">Vendor Visit</div>
-            <div class="qe-title">Log Vendor Entry</div>
-            <div class="qe-desc">Pool, HVAC, landscaping, repairs, and more</div>
+            <div class="qe-label" style="color:var(--blue);">Vendor · Maintenance · Admin</div>
+            <div class="qe-title">Log or Schedule</div>
+            <div class="qe-desc">Vendors, maintenance, taxes, HOA, and more</div>
           </button>
         </div>
       </div>
@@ -416,26 +416,49 @@
 <div class="qmodal-overlay" id="modal-vendor">
   <div class="qmodal">
     <div class="qm-hd">
-      <div class="qm-title">Vendor Visit Log</div>
+      <div class="qm-title">Vendor / Maintenance Log</div>
       <button class="qm-close" onclick="closeModal('modal-vendor')">✕</button>
     </div>
     <div class="qm-body">
       <div class="form-group">
-        <label class="form-label">Vendor / Service</label>
-        <select class="form-ctrl" id="ven-type">
-          <option>Pool Service</option>
-          <option>HVAC — G&GB Air Conditioning</option>
-          <option>Landscaping — Tree Landscaping</option>
-          <option>Water Filtration — Bee Builders</option>
-          <option>Roof / Skylights — Erin Smith & Sons</option>
-          <option>Security System</option>
-          <option>Elevator — Mike Stephens</option>
-          <option>Appliances — Baths of America</option>
-          <option>Pest Control</option>
-          <option>Plumbing</option>
-          <option>Electrical</option>
-          <option>Other Vendor</option>
+        <label class="form-label">Type</label>
+        <select class="form-ctrl" id="ven-cat" onchange="updateVenTitle()">
+          <optgroup label="Vendors">
+            <option value="vendor" data-title="Pool Service">Pool Service</option>
+            <option value="vendor" data-title="HVAC — G&GB Air Conditioning">HVAC — G&amp;GB Air Conditioning</option>
+            <option value="vendor" data-title="Landscaping — Tree Landscaping">Landscaping — Tree Landscaping</option>
+            <option value="vendor" data-title="Water Filtration — Bee Builders">Water Filtration — Bee Builders</option>
+            <option value="vendor" data-title="Roof / Skylights — Erin Smith &amp; Sons">Roof / Skylights — Erin Smith &amp; Sons</option>
+            <option value="vendor" data-title="Security System">Security System</option>
+            <option value="vendor" data-title="Elevator — Mike Stephens">Elevator — Mike Stephens</option>
+            <option value="vendor" data-title="Appliances — Baths of America">Appliances — Baths of America</option>
+            <option value="vendor" data-title="Pest Control">Pest Control</option>
+            <option value="vendor" data-title="Plumbing">Plumbing</option>
+            <option value="vendor" data-title="Electrical">Electrical</option>
+            <option value="vendor" data-title="Other Vendor">Other Vendor</option>
+          </optgroup>
+          <optgroup label="Scheduled Maintenance">
+            <option value="maintenance" data-title="HVAC Filter Replacement — All 15 Zones">HVAC Filter Replacement — All 15 Zones</option>
+            <option value="maintenance" data-title="Pool Filter Quarterly Service">Pool Filter Quarterly Service</option>
+            <option value="maintenance" data-title="Water Filtration Service">Water Filtration Service</option>
+            <option value="maintenance" data-title="Roof Inspection">Roof Inspection</option>
+            <option value="maintenance" data-title="Sprinkler System Check">Sprinkler System Check</option>
+            <option value="maintenance" data-title="Elevator Annual Certification">Elevator Annual Certification</option>
+            <option value="maintenance" data-title="Pressure Wash — Exterior">Pressure Wash — Exterior</option>
+            <option value="maintenance" data-title="Custom Maintenance">Custom Maintenance</option>
+          </optgroup>
+          <optgroup label="Administrative">
+            <option value="admin" data-title="Property Tax — Harris County">Property Tax — Harris County</option>
+            <option value="admin" data-title="HOA Dues">HOA Dues</option>
+            <option value="admin" data-title="Homeowner Insurance Renewal">Homeowner Insurance Renewal</option>
+            <option value="admin" data-title="Utility Payment">Utility Payment</option>
+            <option value="admin" data-title="Custom Administrative Task">Custom Administrative Task</option>
+          </optgroup>
         </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title <span style="font-size:9px;color:var(--text3);font-weight:300;letter-spacing:0;">(editable)</span></label>
+        <input type="text" class="form-ctrl" id="ven-title" placeholder="Entry title">
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -446,19 +469,25 @@
           <label class="form-label">Status</label>
           <select class="form-ctrl" id="ven-status">
             <option value="complete">Complete</option>
+            <option value="scheduled">Scheduled / Upcoming</option>
             <option value="pending">Pending Follow-Up</option>
             <option value="flagged">Issue Flagged</option>
           </select>
         </div>
       </div>
+      <div id="ven-scheduled-hint" style="display:none;margin-bottom:1rem;">
+        <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.2);border-left:3px solid var(--blue);padding:0.6rem 1rem;font-size:12px;color:var(--text2);">
+          📅 Will appear as <strong style="color:var(--blue);">Upcoming</strong> on the dashboard.
+        </div>
+      </div>
       <div class="form-group">
-        <label class="form-label">Work Performed / Notes</label>
-        <textarea class="form-ctrl" id="ven-notes" placeholder="What was done, findings, next steps, invoice status..."></textarea>
+        <label class="form-label">Notes</label>
+        <textarea class="form-ctrl" id="ven-notes" placeholder="Work to be done, findings, invoice status, follow-up items..."></textarea>
       </div>
     </div>
     <div class="qm-footer">
       <button class="btn-ghost" onclick="closeModal('modal-vendor')">Cancel</button>
-      <button class="btn-primary" onclick="saveVendor()">Log Entry</button>
+      <button class="btn-primary" onclick="saveVendor()">Save Entry</button>
     </div>
   </div>
 </div>
@@ -602,6 +631,13 @@ function initApp() {
   document.getElementById('dash-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   document.getElementById('e-date').value = now.toISOString().split('T')[0];
   document.getElementById('arr-date').value = now.toISOString().split('T')[0];
+  document.getElementById('ven-date').addEventListener('change', function(){
+    var today = new Date().toISOString().split('T')[0];
+    if (this.value > today) {
+      document.getElementById('ven-status').value = 'scheduled';
+      updateVenStatusHint();
+    }
+  });
   document.getElementById('arr-date').addEventListener('change', function(){
     var today = new Date().toISOString().split('T')[0];
     var wrap = document.getElementById('arr-scheduled-wrap');
@@ -609,6 +645,9 @@ function initApp() {
   });
   document.getElementById('arr-time').value = now.toTimeString().slice(0,5);
   document.getElementById('ven-date').value = now.toISOString().split('T')[0];
+  document.getElementById('ven-status').addEventListener('change', updateVenStatusHint);
+  // Auto-set title on open
+  updateVenTitle();
   setStatusPill(propertyStatus);
   renderDashboard();
   renderServices();
@@ -1005,20 +1044,39 @@ function saveArrival(){
 }
 
 function saveVendor(){
-  var type=document.getElementById('ven-type').value;
-  var date=document.getElementById('ven-date').value;
-  var status=document.getElementById('ven-status').value;
-  var notes=document.getElementById('ven-notes').value.trim();
+  var catSel = document.getElementById('ven-cat');
+  var cat = catSel.options[catSel.selectedIndex].getAttribute('data-value') || catSel.value;
+  // get value from the option's value attribute
+  cat = catSel.options[catSel.selectedIndex].value || 'vendor';
+  var title = document.getElementById('ven-title').value.trim();
+  var date = document.getElementById('ven-date').value;
+  var status = document.getElementById('ven-status').value;
+  var notes = document.getElementById('ven-notes').value.trim();
   if(!date){alert('Please select a date.');return;}
-  if(!notes){alert('Please add notes.');return;}
+  if(!title){alert('Please add a title.');return;}
 
-  var entry={id:Date.now(),date:date,time:'',title:type,cat:'vendor',area:'Whole Property',status:status,notes:notes};
+  var entry={id:Date.now(),date:date,time:'',title:title,cat:cat,area:'Whole Property',status:status,notes:notes};
   entries.unshift(entry);
   saveEntries();
   closeModal('modal-vendor');
   document.getElementById('ven-notes').value='';
+  document.getElementById('ven-title').value='';
   renderDashboard();
   renderLogbook();
+  if(status==='scheduled') renderCalendar();
+}
+
+function updateVenTitle() {
+  var sel = document.getElementById('ven-cat');
+  var opt = sel.options[sel.selectedIndex];
+  var titleField = document.getElementById('ven-title');
+  titleField.value = opt.getAttribute('data-title') || opt.text;
+}
+
+function updateVenStatusHint() {
+  var status = document.getElementById('ven-status').value;
+  var hint = document.getElementById('ven-scheduled-hint');
+  if (hint) hint.style.display = status === 'scheduled' ? 'block' : 'none';
 }
 
 function saveFullEntry(){
